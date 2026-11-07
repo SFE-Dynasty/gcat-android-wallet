@@ -100,7 +100,7 @@
             <!-- PAN -->
             <TextView
                 android:id="@+id/tv_pan"
-                android:text="GCAT  0001  2500  0000"
+                android:text="9000  0025  0000  0001"
                 android:textColor="#f0f0f0"
                 android:textSize="17sp"
                 android:textStyle="bold"
