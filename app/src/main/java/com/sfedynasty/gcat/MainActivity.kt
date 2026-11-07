@@ -17,7 +17,7 @@ class MainActivity : AppCompatActivity() {
     private val http = OkHttpClient()
     private val JSON = "application/json".toMediaType()
     private val JPOS = "https://gcat-jpos-host.onrender.com"
-    private val PAN = "4815200000250000"
+    private val PAN = "9000002500000001"
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
