@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.sfe.gcatwallet">
 
     <uses-permission android:name="android.permission.NFC" />
     <uses-permission android:name="android.permission.INTERNET" />
@@ -7,8 +8,7 @@
 
     <application
         android:allowBackup="true"
-        android:label="GCAT Wallet"
-        android:supportsRtl="true"
+        android:label="@string/app_name"
         android:theme="@style/Theme.AppCompat.DayNight.NoActionBar">
 
         <activity
@@ -33,4 +33,5 @@
         </service>
 
     </application>
+
 </manifest>
