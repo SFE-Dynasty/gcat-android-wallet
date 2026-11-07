@@ -1,0 +1,1 @@
+gradle-wrapper.jar is a binary file. Android IDE - PHONE AS provides its own Gradle installation. The gradlew script falls back to system gradle automatically.
