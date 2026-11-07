@@ -13,7 +13,7 @@ class GcatHceService : HostApduService() {
     companion object {
         private const val TAG = "GcatHCE"
         private const val JPOS = "https://gcat-jpos-host.onrender.com"
-        private const val PAN = "4815200000250000"
+        private const val PAN = "4815200000250040"
         private val JSON = "application/json".toMediaType()
     }
 
@@ -58,6 +58,6 @@ class GcatHceService : HostApduService() {
 
     private fun ByteArray.toHex() = joinToString("") { "%02X".format(it) }
     private fun fromHex(hex: String) = ByteArray(hex.length / 2) { i ->
-        ((Character.digit(hex[i * 2], 16) shl 4) + Character.digit(hey[i * 2 + 1], 16)).toByte()
+        ((Character.digit(hex[i * 2], 16) shl 4) + Character.digit(hex[i * 2 + 1], 16)).toByte()
     }
 }
