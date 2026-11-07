@@ -80,14 +80,26 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun startNfcPulse(view: TextView) {
-        val scaleX = ObjectAnimator.ofFloat(view, "scaleX", 1f, 1.3f, 1f)
-        val scaleY = ObjectAnimator.ofFloat(view, "scaleY", 1f, 1.3f, 1f)
-        val alpha = ObjectAnimator.ofFloat(view, "alpha", 1f, 0.4f, 1f)
+        val scaleX = ObjectAnimator.ofFloat(view, "scaleX", 1f, 1.3f, 1f).apply {
+            duration = 1500
+            repeatCount = ObjectAnimator.INFINITE
+            repeatMode = ObjectAnimator.RESTART
+            interpolator = AccelerateDecelerateInterpolator()
+        }
+        val scaleY = ObjectAnimator.ofFloat(view, "scaleY", 1f, 1.3f, 1f).apply {
+            duration = 1500
+            repeatCount = ObjectAnimator.INFINITE
+            repeatMode = ObjectAnimator.RESTART
+            interpolator = AccelerateDecelerateInterpolator()
+        }
+        val alpha = ObjectAnimator.ofFloat(view, "alpha", 1f, 0.4f, 1f).apply {
+            duration = 1500
+            repeatCount = ObjectAnimator.INFINITE
+            repeatMode = ObjectAnimator.RESTART
+            interpolator = AccelerateDecelerateInterpolator()
+        }
         val set = AnimatorSet()
         set.playTogether(scaleX, scaleY, alpha)
-        set.duration = 1500
-        set.interpolator = AccelerateDecelerateInterpolator()
-        set.repeatCount = ObjectAnimator.INFINITE
         set.start()
     }
 }
