@@ -2,7 +2,7 @@
 
 Tap-to-pay Android wallet for the GCAT DAO Treasury closed-loop card system.
 
-## SF Emerald Dynasty · US-SFG-PFIA-2025-T1A01
+## SF Emerald Dynasty · US-SFE-PFIA-2025-T1A01
 
 ### Features
 - NFC tap-to-pay via Host Card Emulation (HCE)
