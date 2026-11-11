@@ -95,7 +95,7 @@ class GcatHceService : HostApduService() {
     }
 
     private fun handleGpo(): ByteArray {
-        Log.d(TAG, "GET PR·OCESSING OPTIONS")
+        Log.d(TAG, "GET PRÂ·OCESSING OPTIONS")
         fireApdu("GET;PROCESSING_OPTIONS")
         // AIP + AFL response
         val gpo = byteArrayOf(
@@ -142,7 +142,7 @@ class GcatHceService : HostApduService() {
             enteredPin.append(nibble)
         }
         Log.d(TAG, "PIN VERIFY attempt")
-        return if (enteredPin.toString() == PIT) {
+        return if (enteredPin.toString() == PIN) {
             pinVerified = true
             pinTries = 3
             Log.d(TAG, "PIN verified OK")
