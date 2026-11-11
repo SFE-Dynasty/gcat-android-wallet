@@ -19,7 +19,7 @@ class GcatHceService : HostApduService() {
         private const val PAN = "9000002500000001"
         private const val PIN = "5559"
         // Proprietary closed-loop AID --- starts with F per ISO 7816
-    val AID = byteArrayOf(0xF0.toByte(), 0x00, 0x00, 0x00, 0x99.toByte(), 0x53, 0x46, 0x45)
+         val AID = byteArrayOf(0xF0.toByte(), 0x00, 0x00, 0x00, 0x99.toByte(), 0x53, 0x46, 0x45)
         private val JSON = "application/json".toMediaType()
 
         // Status words
