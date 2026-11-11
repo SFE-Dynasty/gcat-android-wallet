@@ -2,11 +2,16 @@ package com.sfedynasty.gcat
 
 import android.animation.ObjectAnimator
 import android.animation.AnimatorSet
+import android.graphics.Bitmap
 import android.nfc.NfcAdapter
 import android.os.Bundle
+import android.view.View
 import android.view.animation.AccelerateDecelerateInterpolator
+import android.widget.ImageView
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
+import com.google.zxing.BarcodeFormat
+import com.journeyapps.barcodescanner.BarcodeEncoder
 import okhttp3.*
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.RequestBody.Companion.toRequestBody
@@ -27,6 +32,8 @@ class MainActivity : AppCompatActivity() {
         val tvLog = findViewById<TextView>(R.id.tv_log)
         val tvNfc = findViewById<TextView>(R.id.tv_nfc)
         val btnTap = findViewById<TextView>(R.id.btn_tap)
+        val btnScan = findViewById<TextView>(R.id.btn_scan) // NEW
+        val ivQrCode = findViewById<ImageView>(R.id.iv_qr_code)
 
         // NFC status
         val nfc = NfcAdapter.getDefaultAdapter(this)
@@ -50,8 +57,11 @@ class MainActivity : AppCompatActivity() {
             }
         }.start()
 
-        // TAP TO PAY button
+        // --- BUTTON 1: TAP TO PAY (Simulates NFC Authorization) ---
         btnTap.setOnClickListener {
+            // Hide QR if it's open
+            ivQrCode.visibility = View.GONE
+            
             tvStatus.text = "Authorizing..."
             tvLog.text = "Sending to jPOS..."
             Thread {
@@ -67,6 +77,65 @@ class MainActivity : AppCompatActivity() {
                         } else {
                             tvStatus.text = "✗ DECLINED"
                             tvLog.text = result.take(80)
+                        }
+                    }
+                } catch (e: IOException) {
+                    runOnUiThread {
+                        tvStatus.text = "Connection error"
+                        tvLog.text = e.message ?: "unknown error"
+                    }
+                }
+            }.start()
+        }
+
+        // --- BUTTON 2: SCAN TO PAY (Generates QR Code) ---
+        btnScan.setOnClickListener {
+            if (ivQrCode.visibility == View.VISIBLE) {
+                // If already visible, hide it and reset
+                ivQrCode.visibility = View.GONE
+                btnScan.text = "⬛  SCAN TO PAY"
+                tvStatus.text = "Ready — hold phone to terminal"
+                tvLog.text = "jPOS: healthy · v2.1.9"
+                return@setOnClickListener
+            }
+
+            tvStatus.text = "Generating QR..."
+            tvLog.text = "Requesting payload from jPOS..."
+            
+            Thread {
+                try {
+                    // 1. Ping the live server
+                    val body = """{"amount": "10.00", "currency": "USD"}""".toRequestBody(JSON)
+                    http.newCall(Request.Builder().url("$JPOS/qr/generate").post(body).build()).execute().close()
+
+                    // 2. Build EMVCo TLV string
+                    val emvCoPayload = "000201" + 
+                                       "010212" + 
+                                       "26300014com.sfedynasty" + "0108" + PAN + 
+                                       "52045999" + 
+                                       "5303840" +  
+                                       "540510.00" + 
+                                       "5802US" +   
+                                       "5917SF EMERALD DYNASTY" + 
+                                       "6007NEW YORK" + 
+                                       "6304"       
+
+                    runOnUiThread {
+                        try {
+                            // 3. Generate the QR
+                            val barcodeEncoder = BarcodeEncoder()
+                            val bitmap: Bitmap = barcodeEncoder.encodeBitmap(emvCoPayload, BarcodeFormat.QR_CODE, 600, 600)
+                            
+                            // 4. Show it on screen
+                            ivQrCode.setImageBitmap(bitmap)
+                            ivQrCode.visibility = View.VISIBLE
+                            
+                            tvStatus.text = "Scan to Pay"
+                            tvLog.text = "EMVCo CPM Active · $10.00"
+                            btnScan.text = "HIDE QR CODE"
+                        } catch (e: Exception) {
+                            tvStatus.text = "QR Error"
+                            tvLog.text = e.message ?: "Failed to generate QR"
                         }
                     }
                 } catch (e: IOException) {
