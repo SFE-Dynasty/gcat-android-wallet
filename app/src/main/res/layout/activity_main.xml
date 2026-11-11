@@ -48,7 +48,6 @@
                 android:background="#1a1a1a"
                 android:padding="20dp">
 
-                <!-- Top row: issuer only (no network logo) -->
                 <TextView
                     android:id="@+id/tv_issuer"
                     android:text="SF EMERALD DYNASTY"
@@ -188,6 +187,21 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="4dp"
             android:layout_marginBottom="20dp"/>
+
+        <!-- Amount Input -->
+        <EditText
+            android:id="@+id/et_amount"
+            android:layout_width="120dp"
+            android:layout_height="wrap_content"
+            android:hint="Amount"
+            android:inputType="numberDecimal"
+            android:textColor="#f0f0f0"
+            android:textColorHint="#666666"
+            android:gravity="center"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="16dp"
+            android:backgroundTint="#f5c842" />
 
         <!-- SCAN TO PAY button (Silver) -->
         <TextView
