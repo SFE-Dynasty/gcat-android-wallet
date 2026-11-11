@@ -59,15 +59,23 @@ class MainActivity : AppCompatActivity() {
             }
         }.start()
 
-        // --- BUTTON 1: TAP TO PAY (Simulates NFC Authorization) ---
+        // --- BUTTON 1: TAP TO PAY ---
         btnTap.setOnClickListener {
-            ivQrCode.visibility = View.GONE // Hide QR if open
+            ivQrCode.visibility = View.GONE
             btnScan.text = "⬛  SCAN TO PAY"
             
-            // Get amount from input
+            // READ THE DYNAMIC AMOUNT
             val amountStr = etAmount.text.toString().replace("$", "").trim()
-            val amountDouble = amountStr.toDoubleOrNull() ?: 10.00
-            val amountCents = (amountDouble * 100).toInt()
+            val amountDouble = amountStr.toDoubleOrNull() ?: 0.0
+            val amountCents = (amountDouble * 100).toLong()
+            
+            if (amountCents <= 0) {
+                tvStatus.text = "Enter amount first"
+                return@setOnClickListener
+            }
+
+            // Update the bridge so the NFC tap knows the amount
+            SharedData.currentAmountCents = amountCents
 
             tvStatus.text = "Authorizing..."
             tvLog.text = "Sending to jPOS..."
@@ -95,7 +103,7 @@ class MainActivity : AppCompatActivity() {
             }.start()
         }
 
-        // --- BUTTON 2: SCAN TO PAY (Generates QR Code) ---
+        // --- BUTTON 2: SCAN TO PAY ---
         btnScan.setOnClickListener {
             if (ivQrCode.visibility == View.VISIBLE) {
                 ivQrCode.visibility = View.GONE
@@ -106,7 +114,15 @@ class MainActivity : AppCompatActivity() {
             }
 
             val amountStr = etAmount.text.toString().replace("$", "").trim()
-            val amountDouble = amountStr.toDoubleOrNull() ?: 10.00
+            val amountDouble = amountStr.toDoubleOrNull() ?: 0.0
+            val amountCents = (amountDouble * 100).toLong()
+            
+            if (amountCents <= 0) {
+                tvStatus.text = "Enter amount first"
+                return@setOnClickListener
+            }
+
+            SharedData.currentAmountCents = amountCents
             val amountFormatted = String.format("%.2f", amountDouble)
             val amountLength = String.format("%02d", amountFormatted.length)
 
@@ -138,7 +154,7 @@ class MainActivity : AppCompatActivity() {
                             ivQrCode.visibility = View.VISIBLE
                             
                             tvStatus.text = "Scan to Pay"
-                            tvLog.text = "EMVCo CPM Active · $amountFormatted"
+                            tvLog.text = "EMVCo CPM Active · $$amountFormatted"
                             btnScan.text = "HIDE QR CODE"
                         } catch (e: Exception) {
                             tvStatus.text = "QR Error"
