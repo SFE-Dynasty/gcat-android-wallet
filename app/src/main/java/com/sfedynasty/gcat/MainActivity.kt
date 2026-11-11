@@ -7,6 +7,7 @@ import android.nfc.NfcAdapter
 import android.os.Bundle
 import android.view.View
 import android.view.animation.AccelerateDecelerateInterpolator
+import android.widget.EditText
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
@@ -32,8 +33,9 @@ class MainActivity : AppCompatActivity() {
         val tvLog = findViewById<TextView>(R.id.tv_log)
         val tvNfc = findViewById<TextView>(R.id.tv_nfc)
         val btnTap = findViewById<TextView>(R.id.btn_tap)
-        val btnScan = findViewById<TextView>(R.id.btn_scan) // NEW
+        val btnScan = findViewById<TextView>(R.id.btn_scan)
         val ivQrCode = findViewById<ImageView>(R.id.iv_qr_code)
+        val etAmount = findViewById<EditText>(R.id.et_amount)
 
         // NFC status
         val nfc = NfcAdapter.getDefaultAdapter(this)
@@ -59,21 +61,26 @@ class MainActivity : AppCompatActivity() {
 
         // --- BUTTON 1: TAP TO PAY (Simulates NFC Authorization) ---
         btnTap.setOnClickListener {
-            // Hide QR if it's open
-            ivQrCode.visibility = View.GONE
+            ivQrCode.visibility = View.GONE // Hide QR if open
+            btnScan.text = "⬛  SCAN TO PAY"
             
+            // Get amount from input
+            val amountStr = etAmount.text.toString().replace("$", "").trim()
+            val amountDouble = amountStr.toDoubleOrNull() ?: 10.00
+            val amountCents = (amountDouble * 100).toInt()
+
             tvStatus.text = "Authorizing..."
             tvLog.text = "Sending to jPOS..."
             Thread {
                 try {
                     val stan = (Math.random() * 999999).toInt().toString().padStart(6, '0')
-                    val body = """{"field2_pan":"$PAN","field4_amount":1000,"field11_stan":"$stan","field49_currency":"840","uetr_parent":"762adade-c02f-441a-a12b-e940c1c022a6"}""".toRequestBody(JSON)
+                    val body = """{"field2_pan":"$PAN","field4_amount":$amountCents,"field11_stan":"$stan","field49_currency":"840","uetr_parent":"762adade-c02f-441a-a12b-e940c1c022a6"}""".toRequestBody(JSON)
                     val resp = http.newCall(Request.Builder().url("$JPOS/authorize").post(body).build()).execute()
                     val result = resp.body?.string() ?: ""
                     runOnUiThread {
                         if (result.contains("\"00\"")) {
                             tvStatus.text = "✓ APPROVED"
-                            tvLog.text = "Field 39: 00 · STAN: $stan"
+                            tvLog.text = "Field 39: 00 · STAN: $stan · $${String.format("%.2f", amountDouble)}"
                         } else {
                             tvStatus.text = "✗ DECLINED"
                             tvLog.text = result.take(80)
@@ -91,7 +98,6 @@ class MainActivity : AppCompatActivity() {
         // --- BUTTON 2: SCAN TO PAY (Generates QR Code) ---
         btnScan.setOnClickListener {
             if (ivQrCode.visibility == View.VISIBLE) {
-                // If already visible, hide it and reset
                 ivQrCode.visibility = View.GONE
                 btnScan.text = "⬛  SCAN TO PAY"
                 tvStatus.text = "Ready — hold phone to terminal"
@@ -99,22 +105,25 @@ class MainActivity : AppCompatActivity() {
                 return@setOnClickListener
             }
 
+            val amountStr = etAmount.text.toString().replace("$", "").trim()
+            val amountDouble = amountStr.toDoubleOrNull() ?: 10.00
+            val amountFormatted = String.format("%.2f", amountDouble)
+            val amountLength = String.format("%02d", amountFormatted.length)
+
             tvStatus.text = "Generating QR..."
             tvLog.text = "Requesting payload from jPOS..."
             
             Thread {
                 try {
-                    // 1. Ping the live server
-                    val body = """{"amount": "10.00", "currency": "USD"}""".toRequestBody(JSON)
+                    val body = """{"amount": "$amountFormatted", "currency": "USD"}""".toRequestBody(JSON)
                     http.newCall(Request.Builder().url("$JPOS/qr/generate").post(body).build()).execute().close()
 
-                    // 2. Build EMVCo TLV string
                     val emvCoPayload = "000201" + 
                                        "010212" + 
                                        "26300014com.sfedynasty" + "0108" + PAN + 
                                        "52045999" + 
                                        "5303840" +  
-                                       "540510.00" + 
+                                       "54" + amountLength + amountFormatted + 
                                        "5802US" +   
                                        "5917SF EMERALD DYNASTY" + 
                                        "6007NEW YORK" + 
@@ -122,16 +131,14 @@ class MainActivity : AppCompatActivity() {
 
                     runOnUiThread {
                         try {
-                            // 3. Generate the QR
                             val barcodeEncoder = BarcodeEncoder()
                             val bitmap: Bitmap = barcodeEncoder.encodeBitmap(emvCoPayload, BarcodeFormat.QR_CODE, 600, 600)
                             
-                            // 4. Show it on screen
                             ivQrCode.setImageBitmap(bitmap)
                             ivQrCode.visibility = View.VISIBLE
                             
                             tvStatus.text = "Scan to Pay"
-                            tvLog.text = "EMVCo CPM Active · $10.00"
+                            tvLog.text = "EMVCo CPM Active · $amountFormatted"
                             btnScan.text = "HIDE QR CODE"
                         } catch (e: Exception) {
                             tvStatus.text = "QR Error"
